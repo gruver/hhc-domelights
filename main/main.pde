@@ -66,16 +66,8 @@ void setup() {
   frameRate(20);
   colorMode(HSB,100); //<>//
   
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Country_Roads.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Crave_You.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/ODESZA_I_Want_You.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Careless_Whisper_Polish.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/alt-J-Fitzpleasure-Betatraxx-Remix.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Maker.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Mimiosa_Flourenscence.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/pony_full.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Tech_Itch_Dub_Step_Mix.mp3");
-  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/The Chase (Dubstep).mp3");
+  songList = append(songList, "../music/Country_Roads.mp3");
+  songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
   
   minim = new Minim(this);
   soundFile = minim.loadFile(songList[nowPlaying], 1024);
@@ -91,7 +83,7 @@ void setup() {
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
   
-  ring = loadImage("/Users/dgruver/Projects/HHC_DOME_LIGHTS/common/blurCircle.png");
+  ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
   for (int i = 0; i < ringScales.length; i++) {
     ringScales[i] = 0;
