@@ -36,6 +36,15 @@ float[] fftHist = new float[fftBins];
 int lightPattern = 0; //which pattern to use
 int domeRows = 5;
 
+int canvasSize = 800;
+float row1 = .15;
+float row2 = .35;
+float row3 = .55;
+float row4 = .75;
+float row5 = .95;
+
+float[] rowScales = {row1, row2, row3, row4, row5};
+
 int loopCounter = 0;
 float loopAngle = 0;
 
@@ -44,17 +53,29 @@ PFont mainFont;
 boolean toggle = false;
 boolean latch = false;
 
+PImage mGradient;
+PImage bluePink;
+PImage lines;
 PImage ring;
 float[] ringScales = new float[15];
 
 HashMap<DisplayMode,String> displayModes = new HashMap<DisplayMode,String>();
 
 void setup() {
-  size(800, 800, P2D);
+  size(canvasSize, canvasSize, P2D);
+  frameRate(20);
   colorMode(HSB,100); //<>//
   
-  songList = append(songList, "../music/Country_Roads.mp3");
-  songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Country_Roads.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Crave_You.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/ODESZA_I_Want_You.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Careless_Whisper_Polish.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/alt-J-Fitzpleasure-Betatraxx-Remix.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Maker.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Mimiosa_Flourenscence.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/pony_full.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/Tech_Itch_Dub_Step_Mix.mp3");
+  songList = append(songList, "/Users/dgruver/Projects/MUSIC_SOURCE/The Chase (Dubstep).mp3");
   
   minim = new Minim(this);
   soundFile = minim.loadFile(songList[nowPlaying], 1024);
@@ -66,15 +87,23 @@ void setup() {
   audioFFT = new FFT(soundFile.bufferSize(), soundFile.sampleRate());
   audioFFT.linAverages(fftBins);
   
-  ring = loadImage("../common/blurCircle.png");
+  mGradient = loadImage("../common/mardiGradient.png");
+  bluePink = loadImage("../common/pbGradient.png");
+  lines = loadImage("../common/brightStripes.png");
+  
+  ring = loadImage("/Users/dgruver/Projects/HHC_DOME_LIGHTS/common/blurCircle.png");
   ring.mask(ring);
   for (int i = 0; i < ringScales.length; i++) {
     ringScales[i] = 0;
   }
   
   opc = new OPC(this, "127.0.0.1", 7890);
-  opc.ledRing(0, 20, width/2, height/2, 300, 0);
-  
+  opc.ledRing(0, 20, width/2, height/2, width/2 * row5, .157);
+  opc.ledRing(64, 20, width/2, height/2, width/2 * row4, 0);
+  opc.ledRing(128, 15, width/2, height/2, width/2 * row3, 0);
+  opc.ledRing(192, 10, width/2, height/2, width/2 * row2, 0);
+  opc.ledRing(256, 5, width/2, height/2, width/2 * row1, 0);
+
   mainFont = createFont("Helvetica",16,true);
 
   displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
@@ -99,6 +128,9 @@ void draw() {
       break;
   }  
   
+  pushMatrix();
+  //scale(.70);
+  //translate(30,30);
   switch(lightPattern) {
     case 0 :
       domeEq(loopCounter, fftSource);
@@ -113,6 +145,26 @@ void draw() {
       bassRings(loopCounter, fftSource, color(30,100,100), color(85,100,100));
       break;
     case 4 :
+      //WALDO
+      bassRings(loopCounter, fftSource, color(0,0,100), color(0,100,100));
+      break;
+    case 5 :
+      domeBlink(loopCounter, fftSource);
+      break;
+    case 6 :
+      domeFish(loopCounter);
+      break;
+    case 7 :
+      slideImage(loopCounter, 4.8, lines);
+      break;
+    case 8 :
+      spinImage(loopCounter, 1.8, bluePink);
+      break;
+    case 9 :
+      //testSingleRow(loopCounter, width/2 * row5, 2.0);
+      rowTest(loopCounter);
+      break;
+    case 10 :
     default :
       domeBreathe(loopCounter, 2.0);
       break;
@@ -123,6 +175,7 @@ void draw() {
   
   String modeLabel = ("Mode: " + lightPattern);
   text(modeLabel,10, (height-56));
+  popMatrix();
 }
 
 void keyPressed () {
@@ -156,7 +209,11 @@ void keyPressed () {
       directPlaySong(songList[nowPlaying], 2);
       break;
     case 'a' :
-      lightPattern = (lightPattern + 1) % 5;
+      lightPattern = (lightPattern + 1) % 10;
+      println("PATTERN:", lightPattern);
+      break;
+    case 'A' :
+      lightPattern = (lightPattern - 1) % 10;
       println("PATTERN:", lightPattern);
       break;
   }
@@ -175,8 +232,8 @@ void directPlaySong(String songPath, int offset) {
 
 
 void bassRings(int loopCounter, AudioBuffer fftSource, color color1, color color2) {
+  background(hue(color1), .6 * saturation(color1), 30);
   imageMode(CENTER);
-  //println(ringScales);
   
   audioFFT.forward(fftSource);
   float bassThreshold = 20;
@@ -224,7 +281,7 @@ void bassStrobe(int loopCounter, AudioBuffer fftSource, color color1, color colo
   float bassValue = audioFFT.getBand(1);
   
   if (bassValue > bassThreshold) {
-    println(loopCounter, toggle);
+    //println(loopCounter, toggle);
     
     if (!latch) {
       if (toggle) {
@@ -242,62 +299,4 @@ void bassStrobe(int loopCounter, AudioBuffer fftSource, color color1, color colo
   else {
     latch = false;
   }
-}
-
-void domeEq(int loopCounter, AudioBuffer buffer) {
-  //audioFFT.forward(soundStream.mix);
-  audioFFT.forward(buffer);
-  float psd = 0;
-  
-  float barWidth = 360.0 / fftBins;
-  float offset = (loopCounter/500.0);
-  
-  for (int i=0; i<fftBins; i++) {
-    psd += audioFFT.getBand(i);
-    
-    float center = (i+.5)*barWidth;
-    float sHeight = .9 * audioFFT.getBand(i) / 15;
-    float saturation = map(audioFFT.getBand(i),0,20,10,100);
-    color sColor = color(((i+.5)*barWidth/3.6+loopCounter/80.0)%100.0, saturation, saturation);
-    drawSlice(center, barWidth, sHeight, sColor);
-  }
-  //println(psd);
-}
-
-void pinwheel(int loopCounter, int slices, float speed) {
-  //speed is 1/speed
-  float sliceWidth = 360.0/slices;
-  
-  for (int i = 1; i <= slices; i++) {
-    color sliceColor = color(((i-1)*(100.0/slices)+(loopCounter/speed)) % 100.0, 100, 100);
-    drawSlice(sliceWidth*(i-.5), sliceWidth, .9, sliceColor);
-  }
-}
-
-
-void drawSlice(float thetaCenter, float sliceWidth, float sliceHeight, color sliceColor) {
-  //height is 0 to 1
-  sliceHeight = min(sliceHeight, 1.0);
-  noStroke();
-  fill(sliceColor);
-  float widthAngle = radians(sliceWidth) / 2;
-  
-  float frameWidth = 300;
-  float frameHeight = 300;
-  
-  pushMatrix();
-  translate(width/2, height/2);
-  rotate(radians(thetaCenter));
-  
-  beginShape();
-  float x = (1-sliceHeight) * width/2;
-  float xSinT = sin(widthAngle);
-  vertex(x, -x*xSinT);
-  vertex(x, x*xSinT);
-  
-  vertex(width/2, width/2 * xSinT);
-  vertex(width/2, -1 * width/2 * xSinT);
-  endShape(CLOSE);
-  
-  popMatrix();
 }
