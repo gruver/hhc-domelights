@@ -50,6 +50,9 @@ float loopAngle = 0;
 boolean toggle = false;
 boolean latch = false;
 
+PImage mGradient;
+PImage bluePink;
+PImage lines;
 PImage ring;
 float[] ringScales = new float[15];
 
@@ -78,6 +81,10 @@ void setup() {
   
   audioFFT = new FFT(soundFile.bufferSize(), soundFile.sampleRate());
   audioFFT.linAverages(fftBins);
+  
+  mGradient = loadImage("../common/mardiGradient.png");
+  bluePink = loadImage("../common/pbGradient.png");
+  lines = loadImage("../common/brightStripes.png");
   
   ring = loadImage("/Users/dgruver/Projects/HHC_DOME_LIGHTS/common/blurCircle.png");
   ring.mask(ring);
@@ -130,13 +137,22 @@ void draw() {
       bassRings(loopCounter, fftSource, color(0,0,100), color(0,100,100));
       break;
     case 5 :
-      domeFish(loopCounter);
+      domeBlink(loopCounter, fftSource);
       break;
     case 6 :
+      domeFish(loopCounter);
+      break;
+    case 7 :
+      slideImage(loopCounter, 4.8, lines);
+      break;
+    case 8 :
+      spinImage(loopCounter, 1.8, bluePink);
+      break;
+    case 9 :
       //testSingleRow(loopCounter, width/2 * row5, 2.0);
       rowTest(loopCounter);
       break;
-    case 7 :
+    case 10 :
     default :
       domeBreathe(loopCounter, 2.0);
       break;
@@ -175,7 +191,11 @@ void keyPressed () {
       directPlaySong(songList[nowPlaying], 2);
       break;
     case 'a' :
-      lightPattern = (lightPattern + 1) % 8;
+      lightPattern = (lightPattern + 1) % 10;
+      println("PATTERN:", lightPattern);
+      break;
+    case 'A' :
+      lightPattern = (lightPattern - 1) % 10;
       println("PATTERN:", lightPattern);
       break;
   }
@@ -194,8 +214,8 @@ void directPlaySong(String songPath, int offset) {
 
 
 void bassRings(int loopCounter, AudioBuffer fftSource, color color1, color color2) {
+  background(hue(color1), .6 * saturation(color1), 30);
   imageMode(CENTER);
-  //println(ringScales);
   
   audioFFT.forward(fftSource);
   float bassThreshold = 20;
@@ -243,7 +263,7 @@ void bassStrobe(int loopCounter, AudioBuffer fftSource, color color1, color colo
   float bassValue = audioFFT.getBand(1);
   
   if (bassValue > bassThreshold) {
-    println(loopCounter, toggle);
+    //println(loopCounter, toggle);
     
     if (!latch) {
       if (toggle) {
@@ -261,59 +281,4 @@ void bassStrobe(int loopCounter, AudioBuffer fftSource, color color1, color colo
   else {
     latch = false;
   }
-}
-
-void domeEq(int loopCounter, AudioBuffer buffer) {
-  //audioFFT.forward(soundStream.mix);
-  audioFFT.forward(buffer);
-  float psd = 0;
-  
-  float barWidth = 360.0 / fftBins;
-  float offset = (loopCounter/500.0);
-  
-  for (int i=0; i<fftBins; i++) {
-    psd += audioFFT.getBand(i);
-    
-    float center = (i+.5)*barWidth;
-    float sHeight = .9 * audioFFT.getBand(i) / 15;
-    float saturation = map(audioFFT.getBand(i),0,20,10,100);
-    color sColor = color(((i+.5)*barWidth/3.6+loopCounter/80.0)%100.0, saturation, saturation);
-    drawSlice(center, barWidth, width/2, sHeight, sColor);
-  }
-  //println(psd);
-}
-
-void pinwheel(int loopCounter, int slices, float speed) {
-  //speed is 1/speed
-  float sliceWidth = 360.0/slices;
-  
-  for (int i = 1; i <= slices; i++) {
-    color sliceColor = color(((i-1)*(100.0/slices)+(loopCounter/speed)) % 100.0, 100, 100);
-    drawSlice(sliceWidth*(i-.5), sliceWidth, width/2, .9, sliceColor);
-  }
-}
-
-
-void drawSlice(float thetaCenter, float sliceWidth, float sliceRadius, float sliceHeight, color sliceColor) {
-  //height is 0 to 1
-  sliceHeight = min(sliceHeight, 1.0);
-  noStroke();
-  fill(sliceColor);
-  float widthAngle = radians(sliceWidth) / 2;
-  
-  pushMatrix();
-  translate(width/2, height/2);
-  rotate(radians(thetaCenter));
-  
-  beginShape();
-  float x = (1-sliceHeight) * width/2;
-  float xSinT = sin(widthAngle);
-  vertex(x, -x*xSinT);
-  vertex(x, x*xSinT);
-  
-  vertex(sliceRadius, width/2 * xSinT);
-  vertex(sliceRadius, -1 * width/2 * xSinT);
-  endShape(CLOSE);
-  
-  popMatrix();
 }
