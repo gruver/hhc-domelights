@@ -5,6 +5,7 @@
 
 import ddf.minim.analysis.*;
 import ddf.minim.*;
+import java.util.Map;
 
 Minim minim;
 OPC opc;
@@ -38,15 +39,19 @@ int domeRows = 5;
 int loopCounter = 0;
 float loopAngle = 0;
 
+PFont mainFont;
+
 boolean toggle = false;
 boolean latch = false;
 
 PImage ring;
 float[] ringScales = new float[15];
 
+HashMap<DisplayMode,String> displayModes = new HashMap<DisplayMode,String>();
+
 void setup() {
   size(800, 800, P2D);
-  colorMode(HSB,100);
+  colorMode(HSB,100); //<>//
   
   songList = append(songList, "../music/Country_Roads.mp3");
   songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
@@ -69,12 +74,19 @@ void setup() {
   
   opc = new OPC(this, "127.0.0.1", 7890);
   opc.ledRing(0, 20, width/2, height/2, 300, 0);
+  
+  mainFont = createFont("Helvetica",16,true);
+
+  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
+  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
+  
+  println(displayModes.get(DisplayMode.DOME_EQ));  
 }
 
 void draw() {
   background(0); //reset to black
   loopCounter++;
-  
+    
   switch(soundReference) {
     case 0 :
       fftSource = soundStream.mix;
@@ -85,7 +97,7 @@ void draw() {
     default :
       fftSource = soundStream.mix;
       break;
-  }
+  }  
   
   switch(lightPattern) {
     case 0 :
@@ -105,6 +117,12 @@ void draw() {
       domeBreathe(loopCounter, 2.0);
       break;
   }
+  
+  fill(4,100,100);
+  textFont(mainFont);
+  
+  String modeLabel = ("Mode: " + lightPattern);
+  text(modeLabel,10, (height-56));
 }
 
 void keyPressed () {
@@ -263,6 +281,9 @@ void drawSlice(float thetaCenter, float sliceWidth, float sliceHeight, color sli
   noStroke();
   fill(sliceColor);
   float widthAngle = radians(sliceWidth) / 2;
+  
+  float frameWidth = 300;
+  float frameHeight = 300;
   
   pushMatrix();
   translate(width/2, height/2);
