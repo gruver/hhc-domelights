@@ -1,3 +1,13 @@
+void loudColor  (int loopCounter, AudioBuffer buffer) {
+  float[] levels = analyzeSound(buffer);
+  float filter = 0.3;
+  
+  volume = psd * filter + volume * (1 - filter); 
+  
+  float h = min(100, volume / 2.6);
+  background(h, psd13/2, psd13/2.4);
+}
+
 void domeBlink (int loopCounter, AudioBuffer buffer) {
   background(color(50,80,30));
   int bassBin = 0;
@@ -69,6 +79,7 @@ void drawSlice(float thetaCenter, float sliceWidth, float sliceRadius, float sli
 
 void spinImage(int loopCounter, float speed, PImage projectedImage) {
   float theta = radians((float(loopCounter) * speed) % 360);
+  tint(color(0,0,100));
   pushMatrix();
   translate(width/2, height/2);
   rotate(theta);
@@ -78,6 +89,7 @@ void spinImage(int loopCounter, float speed, PImage projectedImage) {
 
 void slideImage(int loopCounter, float speed, PImage projectedImage) {
   int imHeight = projectedImage.height;
+  tint(color(0,0,100));
   pushMatrix();
   translate(width/2, height/2);
   image(projectedImage, 0, loopCounter * speed % imHeight);
@@ -116,6 +128,11 @@ void testSingleRow(int loopCounter, float rowRadius, float speed) {
   image(ring, rowRadius, 0, 70, 210);
   popMatrix();
   
+}
+
+void colorTest(int loopCounter, float speed) {
+  float h = (loopCounter * speed) % 100;
+  background(h, 80, 80);
 }
 
 void domeFish(int loopCounter) {

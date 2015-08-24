@@ -35,7 +35,7 @@ float[] fftHist = new float[fftBins];
 int lightPattern = 0; //which pattern to use
 int domeRows = 5;
 
-int canvasSize = 800;
+int canvasSize = 600;
 float row1 = .15;
 float row2 = .35;
 float row3 = .55;
@@ -46,6 +46,12 @@ float[] rowScales = {row1, row2, row3, row4, row5};
 
 int loopCounter = 0;
 float loopAngle = 0;
+
+float psd = 0;
+float psd13 = 0;
+float psd23 = 0;
+float psd33 = 0;
+float volume = 0;
 
 boolean toggle = false;
 boolean latch = false;
@@ -138,15 +144,26 @@ void draw() {
       slideImage(loopCounter, 4.8, lines);
       break;
     case 8 :
-      spinImage(loopCounter, 1.8, bluePink);
+      spinImage(loopCounter, 1.8, mGradient);
       break;
     case 9 :
-      //testSingleRow(loopCounter, width/2 * row5, 2.0);
-      rowTest(loopCounter);
+      spinImage(loopCounter, 1.8, bluePink);
       break;
     case 10 :
-    default :
+      rowTest(loopCounter);
+      break;
+    case 11 :
       domeBreathe(loopCounter, 2.0);
+      break;
+    case 12 :
+      loudColor(loopCounter, fftSource);
+      break;
+    case 13 :
+    default :
+      colorTest(loopCounter, .2);
+      break;
+    case 14 :
+      float[] foo = analyzeSound(fftSource);
       break;
   }
   popMatrix();
@@ -183,11 +200,11 @@ void keyPressed () {
       directPlaySong(songList[nowPlaying], 2);
       break;
     case 'a' :
-      lightPattern = (lightPattern + 1) % 10;
+      lightPattern = (lightPattern + 1) % 15;
       println("PATTERN:", lightPattern);
       break;
     case 'A' :
-      lightPattern = (lightPattern - 1) % 10;
+      lightPattern = (lightPattern + 14) % 15;
       println("PATTERN:", lightPattern);
       break;
   }
