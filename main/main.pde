@@ -5,6 +5,7 @@
 
 import ddf.minim.analysis.*;
 import ddf.minim.*;
+import java.util.Map;
 
 Minim minim;
 OPC opc;
@@ -35,7 +36,7 @@ float[] fftHist = new float[fftBins];
 int lightPattern = 0; //which pattern to use
 int domeRows = 5;
 
-int canvasSize = 600;
+int canvasSize = 800;
 float row1 = .15;
 float row2 = .35;
 float row3 = .55;
@@ -47,6 +48,7 @@ float[] rowScales = {row1, row2, row3, row4, row5};
 int loopCounter = 0;
 float loopAngle = 0;
 
+PFont mainFont;
 float psd = 0;
 float psd13 = 0;
 float psd23 = 0;
@@ -62,10 +64,12 @@ PImage lines;
 PImage ring;
 float[] ringScales = new float[15];
 
+HashMap<DisplayMode,String> displayModes = new HashMap<DisplayMode,String>();
+
 void setup() {
   size(canvasSize, canvasSize, P2D);
   frameRate(20);
-  colorMode(HSB,100);
+  colorMode(HSB,100); //<>//
   
   songList = append(songList, "../music/Country_Roads.mp3");
   songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
@@ -96,12 +100,19 @@ void setup() {
   opc.ledRing(128, 15, width/2, height/2, width/2 * row3, 0);
   opc.ledRing(192, 10, width/2, height/2, width/2 * row2, 0);
   opc.ledRing(256, 5, width/2, height/2, width/2 * row1, 0);
+
+  mainFont = createFont("Helvetica",16,true);
+
+  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
+  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
+  
+  println(displayModes.get(DisplayMode.DOME_EQ));  
 }
 
 void draw() {
   background(0); //reset to black
   loopCounter++;
-  
+    
   switch(soundReference) {
     case 0 :
       fftSource = soundStream.mix;
@@ -112,7 +123,7 @@ void draw() {
     default :
       fftSource = soundStream.mix;
       break;
-  }
+  }  
   
   pushMatrix();
   //scale(.70);
@@ -166,6 +177,12 @@ void draw() {
       float[] foo = analyzeSound(fftSource);
       break;
   }
+  
+  fill(4,100,100);
+  textFont(mainFont);
+  
+  String modeLabel = ("Mode: " + lightPattern);
+  text(modeLabel,10, (height-56));
   popMatrix();
 }
 
