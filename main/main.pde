@@ -10,9 +10,12 @@ import java.util.Map;
 /////////////////////////////////////////////////////
 // Constants
 
-int CANVAS_SIZE = 800;
+int DISPLAY_WIDTH = 600;
+int DISPLAY_HEIGHT = 600;
 
 int FFT_BIN_COUNT = 36;
+int FONT_SIZE = 16;
+int LINE_HEIGHT = Math.round(FONT_SIZE*1.33);
 
 int DOME_ROW_COUNT = 5;
 float ROW_SCALE_1 = .15;
@@ -25,7 +28,7 @@ float[] ROW_SCALE_ARRAY = {ROW_SCALE_1, ROW_SCALE_2, ROW_SCALE_3, ROW_SCALE_4, R
 /////////////////////////////////////////////////////
 // Global Variables
 
-FFT audioFFT;
+FFT g_audioFFT;
 
 /////////////////////////////////////////////////////
 // Class Variables
@@ -63,12 +66,10 @@ PImage lines;
 PImage ring;
 float[] ringScales = new float[15];
 
-HashMap<DisplayMode,String> displayModes = new HashMap<DisplayMode,String>();
-
 void setup() {
-  size(CANVAS_SIZE, CANVAS_SIZE, P2D);
+  size(DISPLAY_WIDTH, (DISPLAY_HEIGHT+100), P2D); //<>//
   frameRate(20);
-  colorMode(HSB,100); //<>//
+  colorMode(HSB,100);
   
   songList = append(songList, "../music/Country_Roads.mp3");
   songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
@@ -80,8 +81,8 @@ void setup() {
   m_soundStream.mute();
   
   // Setup the FFT
-  audioFFT = new FFT(m_soundFile.bufferSize(), m_soundFile.sampleRate());
-  audioFFT.linAverages(FFT_BIN_COUNT);
+  g_audioFFT = new FFT(m_soundFile.bufferSize(), m_soundFile.sampleRate());
+  g_audioFFT.linAverages(FFT_BIN_COUNT);
   
   mGradient = loadImage("../common/mardiGradient.png");
   bluePink = loadImage("../common/pbGradient.png");
@@ -94,18 +95,13 @@ void setup() {
   
   // Setup the Open Pixel Controller
   OPC opc = new OPC(this, "127.0.0.1", 7890);
-  opc.ledRing(0, 20, width/2, height/2, width/2 * ROW_SCALE_5, .157);
-  opc.ledRing(64, 20, width/2, height/2, width/2 * ROW_SCALE_4, 0);
-  opc.ledRing(128, 15, width/2, height/2, width/2 * ROW_SCALE_3, 0);
-  opc.ledRing(192, 10, width/2, height/2, width/2 * ROW_SCALE_2, 0);
-  opc.ledRing(256, 5, width/2, height/2, width/2 * ROW_SCALE_1, 0);
-
-  mainFont = createFont("Helvetica",16,true);
-
-  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
-  displayModes.put(DisplayMode.DOME_EQ, "Dome Equalizer");
+  opc.ledRing(0, 20, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_5, .157);
+  opc.ledRing(64, 20, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_4, 0);
+  opc.ledRing(128, 15, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_3, 0);
+  opc.ledRing(192, 10, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_2, 0);
+  opc.ledRing(256, 5, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_1, 0);
   
-  println(displayModes.get(DisplayMode.DOME_EQ));  
+  mainFont = createFont("Helvetica",16,true);   
 }
 
 void draw() {
@@ -125,8 +121,7 @@ void draw() {
   }  
   
   pushMatrix();
-  //scale(.70);
-  //translate(30,30);
+  
   switch(lightPattern) {
     case 0 :
       domeEq(loopCounter, m_fftSource);
@@ -177,21 +172,43 @@ void draw() {
       break;
   }
   
+  popMatrix();
+  
+  displayContext(width, height);
+  
+}
+
+void displayContext(int display_width, int display_height) {
   fill(4,100,100);
   textFont(mainFont);
   
-  String modeLabel = ("Mode: " + lightPattern);
-  text(modeLabel,10, (height-56));
-  popMatrix();
+  int yIndex = display_height-LINE_HEIGHT;
+  
+  text(("Display Mode: " + lightPattern + " (a) advance (shift+a) previous"), 10, yIndex);
+  yIndex = yIndex-LINE_HEIGHT;
+  
+  String sourceInfo = " (s) switch";
+  if (soundReference == 1) {
+    sourceInfo += " (p) ";
+    if (m_soundFile.isPlaying()) {
+      sourceInfo += "pause"; 
+    } else {
+      sourceInfo += "play";
+    }
+  }
+  text(("Audio Source: " + soundReference + sourceInfo), 10, yIndex);
+  yIndex = yIndex-LINE_HEIGHT;
 }
 
 void keyPressed () {
   int song = key - '0';
   
   switch(key) {
-    case 'z' :
+    case 's' :
       soundReference = (soundReference + 1) % 2;
-      println("SOUND SOURCE:", soundReference);
+      if (m_soundFile != null && m_soundFile.isPlaying()) {
+        m_soundFile.pause();
+      }
       break;
     case 'm' :
       if (m_soundStream.isMuted()) {
@@ -203,7 +220,7 @@ void keyPressed () {
       }
       break;
     case 'p' :
-      if (m_soundFile.isPlaying()) {
+      if (m_soundFile != null && m_soundFile.isPlaying()) {
         m_soundFile.pause();
       }
       else {
@@ -237,14 +254,13 @@ void directPlaySong(String songPath, int offset) {
   println("Playing:", songPath);
 }
 
-
 void bassRings(int loopCounter, AudioBuffer m_fftSource, color color1, color color2) {
   background(hue(color1), .6 * saturation(color1), 30);
   imageMode(CENTER);
   
-  audioFFT.forward(m_fftSource);
+  g_audioFFT.forward(m_fftSource);
   float bassThreshold = 20;
-  float bassValue = max(audioFFT.getBand(5), audioFFT.getBand(0));
+  float bassValue = max(g_audioFFT.getBand(5), g_audioFFT.getBand(0));
   
   if (bassValue > bassThreshold) { //boom
     if (!latch) { //add a new ring, latch
@@ -271,7 +287,7 @@ void bassRings(int loopCounter, AudioBuffer m_fftSource, color color1, color col
       else {
         tint(color2);
       }
-      image(ring, width/2, height/2, ringScales[i] * width, ringScales[i] * height);
+      image(ring, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, ringScales[i] * DISPLAY_WIDTH, ringScales[i] * DISPLAY_HEIGHT);
       ringScales[i] *= 0.91;
     }
     else {
@@ -283,9 +299,9 @@ void bassRings(int loopCounter, AudioBuffer m_fftSource, color color1, color col
 void bassStrobe(int loopCounter, AudioBuffer m_fftSource, color color1, color color2) {
   ellipseMode(CENTER);
   
-  audioFFT.forward(m_fftSource);
+  g_audioFFT.forward(m_fftSource);
   float bassThreshold = 20;
-  float bassValue = audioFFT.getBand(1);
+  float bassValue = g_audioFFT.getBand(1);
   
   if (bassValue > bassThreshold) {
     //println(loopCounter, toggle);
@@ -301,7 +317,7 @@ void bassStrobe(int loopCounter, AudioBuffer m_fftSource, color color1, color co
     }
     
     latch = true;
-    ellipse(width/2, height/2, width, height);
+    ellipse(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT);
   }
   else {
     latch = false;

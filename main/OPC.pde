@@ -41,7 +41,7 @@ public class OPC
       pixelLocations = Arrays.copyOf(pixelLocations, index + 1);
     }
 
-    pixelLocations[index] = x + width * y;
+    pixelLocations[index] = x + DISPLAY_WIDTH * y;
   }
   
   // Set the location of several LEDs arranged in a strip.
