@@ -23,14 +23,13 @@ void propellor(int loopCounter, AudioBuffer buffer) {
 }
 
 void domeEq(int loopCounter, AudioBuffer buffer) {
-  //audioFFT.forward(soundStream.mix);
   audioFFT.forward(buffer);
   float psd = 0;
   
-  float barWidth = 360.0 / fftBins;
+  float barWidth = 360.0 / FFT_BIN_COUNT;
   float offset = (loopCounter/500.0);
   
-  for (int i=0; i<fftBins; i++) {
+  for (int i=0; i<FFT_BIN_COUNT; i++) {
     psd += audioFFT.getBand(i);
     
     float center = (i+.5)*barWidth;
@@ -114,8 +113,8 @@ void rowTest(int loopCounter) {
   float speed = 5;
   int rowLaps = 3;
   float countsOnRow = rowLaps * 360 / speed;
-  float row = (loopCounter / countsOnRow) % domeRows;
-  testSingleRow(loopCounter, width/2 * rowScales[int(row)], speed);
+  float row = (loopCounter / countsOnRow) % DOME_ROW_COUNT;
+  testSingleRow(loopCounter, width/2 * ROW_SCALE_ARRAY[int(row)], speed);
 }
 
 void testSingleRow(int loopCounter, float rowRadius, float speed) {

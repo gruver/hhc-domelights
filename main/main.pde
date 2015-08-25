@@ -7,46 +7,45 @@ import ddf.minim.analysis.*;
 import ddf.minim.*;
 import java.util.Map;
 
-Minim minim;
-OPC opc;
+/////////////////////////////////////////////////////
+// Constants
 
-AudioPlayer soundFile;
-AudioInput soundStream; //USB soundboard
-AudioBuffer fftSource;
+int CANVAS_SIZE = 800;
+
+int FFT_BIN_COUNT = 36;
+
+int DOME_ROW_COUNT = 5;
+float ROW_SCALE_1 = .15;
+float ROW_SCALE_2 = .35;
+float ROW_SCALE_3 = .55;
+float ROW_SCALE_4 = .75;
+float ROW_SCALE_5 = .95;
+float[] ROW_SCALE_ARRAY = {ROW_SCALE_1, ROW_SCALE_2, ROW_SCALE_3, ROW_SCALE_4, ROW_SCALE_5};
+
+/////////////////////////////////////////////////////
+// Global Variables
+
+FFT audioFFT;
+
+/////////////////////////////////////////////////////
+// Class Variables
+
+Minim m_minim;
+
+AudioPlayer m_soundFile;
+AudioInput m_soundStream; //USB soundboard
+AudioBuffer m_fftSource;
+
+/////////////////////////////////////////////////////
+// State Variables
+
+int lightPattern = 0; //which pattern to use
+int loopCounter = 0;
+float loopAngle = 0;
 
 int soundReference = 0;
 String[] songList = new String[0];
 int nowPlaying = 0; //song to use from songList[]
-
-FFT audioFFT;
-
-/*
-Row 0 is the top; number of lights, rotation angle
-row0 = 1, 0rad
-row1 = 5, 0rad
-row2 = 10, 0rad
-row3 = 15, 0rad
-row4 = 20, 0rad
-row5 = 20, 0.157rad
-row6 = 20 - ground 
-*/
-int fftBins = 36;
-float[] fftHist = new float[fftBins];
-
-int lightPattern = 0; //which pattern to use
-int domeRows = 5;
-
-int canvasSize = 800;
-float row1 = .15;
-float row2 = .35;
-float row3 = .55;
-float row4 = .75;
-float row5 = .95;
-
-float[] rowScales = {row1, row2, row3, row4, row5};
-
-int loopCounter = 0;
-float loopAngle = 0;
 
 PFont mainFont;
 float psd = 0;
@@ -67,39 +66,39 @@ float[] ringScales = new float[15];
 HashMap<DisplayMode,String> displayModes = new HashMap<DisplayMode,String>();
 
 void setup() {
-  size(canvasSize, canvasSize, P2D);
+  size(CANVAS_SIZE, CANVAS_SIZE, P2D);
   frameRate(20);
   colorMode(HSB,100); //<>//
   
   songList = append(songList, "../music/Country_Roads.mp3");
   songList = append(songList, "../music/Mimiosa_Flourenscence.mp3");
   
-  minim = new Minim(this);
-  soundFile = minim.loadFile(songList[nowPlaying], 1024);
-  soundStream = minim.getLineIn(Minim.STEREO, 1024);
-  soundStream.enableMonitoring();
-  soundStream.mute();
+  m_minim = new Minim(this);
+  m_soundFile = m_minim.loadFile(songList[nowPlaying], 1024);
+  m_soundStream = m_minim.getLineIn(Minim.STEREO, 1024);
+  m_soundStream.enableMonitoring();
+  m_soundStream.mute();
   
-  
-  audioFFT = new FFT(soundFile.bufferSize(), soundFile.sampleRate());
-  audioFFT.linAverages(fftBins);
+  // Setup the FFT
+  audioFFT = new FFT(m_soundFile.bufferSize(), m_soundFile.sampleRate());
+  audioFFT.linAverages(FFT_BIN_COUNT);
   
   mGradient = loadImage("../common/mardiGradient.png");
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
-  
   ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
   for (int i = 0; i < ringScales.length; i++) {
     ringScales[i] = 0;
   }
   
-  opc = new OPC(this, "127.0.0.1", 7890);
-  opc.ledRing(0, 20, width/2, height/2, width/2 * row5, .157);
-  opc.ledRing(64, 20, width/2, height/2, width/2 * row4, 0);
-  opc.ledRing(128, 15, width/2, height/2, width/2 * row3, 0);
-  opc.ledRing(192, 10, width/2, height/2, width/2 * row2, 0);
-  opc.ledRing(256, 5, width/2, height/2, width/2 * row1, 0);
+  // Setup the Open Pixel Controller
+  OPC opc = new OPC(this, "127.0.0.1", 7890);
+  opc.ledRing(0, 20, width/2, height/2, width/2 * ROW_SCALE_5, .157);
+  opc.ledRing(64, 20, width/2, height/2, width/2 * ROW_SCALE_4, 0);
+  opc.ledRing(128, 15, width/2, height/2, width/2 * ROW_SCALE_3, 0);
+  opc.ledRing(192, 10, width/2, height/2, width/2 * ROW_SCALE_2, 0);
+  opc.ledRing(256, 5, width/2, height/2, width/2 * ROW_SCALE_1, 0);
 
   mainFont = createFont("Helvetica",16,true);
 
@@ -115,13 +114,13 @@ void draw() {
     
   switch(soundReference) {
     case 0 :
-      fftSource = soundStream.mix;
+      m_fftSource = m_soundStream.mix;
       break;
     case 1 :
-      fftSource = soundFile.mix;
+      m_fftSource = m_soundFile.mix;
       break;
     default :
-      fftSource = soundStream.mix;
+      m_fftSource = m_soundStream.mix;
       break;
   }  
   
@@ -130,23 +129,23 @@ void draw() {
   //translate(30,30);
   switch(lightPattern) {
     case 0 :
-      domeEq(loopCounter, fftSource);
+      domeEq(loopCounter, m_fftSource);
       break;
     case 1 :
       pinwheel(loopCounter, 60, 9);
       break;
     case 2 :
-      bassStrobe(loopCounter, fftSource, color(80,100,100), color(20,100,100));
+      bassStrobe(loopCounter, m_fftSource, color(80,100,100), color(20,100,100));
       break;
     case 3 :
-      bassRings(loopCounter, fftSource, color(30,100,100), color(85,100,100));
+      bassRings(loopCounter, m_fftSource, color(30,100,100), color(85,100,100));
       break;
     case 4 :
       //WALDO
-      bassRings(loopCounter, fftSource, color(0,0,100), color(0,100,100));
+      bassRings(loopCounter, m_fftSource, color(0,0,100), color(0,100,100));
       break;
     case 5 :
-      domeBlink(loopCounter, fftSource);
+      domeBlink(loopCounter, m_fftSource);
       break;
     case 6 :
       domeFish(loopCounter);
@@ -167,14 +166,14 @@ void draw() {
       domeBreathe(loopCounter, 2.0);
       break;
     case 12 :
-      loudColor(loopCounter, fftSource);
+      loudColor(loopCounter, m_fftSource);
       break;
     case 13 :
     default :
       colorTest(loopCounter, .2);
       break;
     case 14 :
-      float[] foo = analyzeSound(fftSource);
+      float[] foo = analyzeSound(m_fftSource);
       break;
   }
   
@@ -195,20 +194,20 @@ void keyPressed () {
       println("SOUND SOURCE:", soundReference);
       break;
     case 'm' :
-      if (soundStream.isMuted()) {
-        soundStream.unmute();
+      if (m_soundStream.isMuted()) {
+        m_soundStream.unmute();
         println("UNMUTE");
       } else {
-        soundStream.mute();
+        m_soundStream.mute();
         println("MUTE");
       }
       break;
     case 'p' :
-      if (soundFile.isPlaying()) {
-        soundFile.pause();
+      if (m_soundFile.isPlaying()) {
+        m_soundFile.pause();
       }
       else {
-        soundFile.play();
+        m_soundFile.play();
         println("PLAY SONG:", songList[nowPlaying]);
       }
       break;
@@ -232,18 +231,18 @@ void keyPressed () {
 }
 
 void directPlaySong(String songPath, int offset) {
-  minim.stop();
-  soundFile = minim.loadFile(songPath,1024);
-  soundFile.play(offset * 1000);
+  m_minim.stop();
+  m_soundFile = m_minim.loadFile(songPath,1024);
+  m_soundFile.play(offset * 1000);
   println("Playing:", songPath);
 }
 
 
-void bassRings(int loopCounter, AudioBuffer fftSource, color color1, color color2) {
+void bassRings(int loopCounter, AudioBuffer m_fftSource, color color1, color color2) {
   background(hue(color1), .6 * saturation(color1), 30);
   imageMode(CENTER);
   
-  audioFFT.forward(fftSource);
+  audioFFT.forward(m_fftSource);
   float bassThreshold = 20;
   float bassValue = max(audioFFT.getBand(5), audioFFT.getBand(0));
   
@@ -281,10 +280,10 @@ void bassRings(int loopCounter, AudioBuffer fftSource, color color1, color color
   }
 }
 
-void bassStrobe(int loopCounter, AudioBuffer fftSource, color color1, color color2) {
+void bassStrobe(int loopCounter, AudioBuffer m_fftSource, color color1, color color2) {
   ellipseMode(CENTER);
   
-  audioFFT.forward(fftSource);
+  audioFFT.forward(m_fftSource);
   float bassThreshold = 20;
   float bassValue = audioFFT.getBand(1);
   
