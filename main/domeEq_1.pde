@@ -11,10 +11,10 @@ void loudColor  (int loopCounter, AudioBuffer buffer) {
 void domeBlink (int loopCounter, AudioBuffer buffer) {
   background(color(50,80,30));
   int bassBin = 0;
-  boolean isBass = (audioFFT.getBand(bassBin) > 25.0);
+  boolean isBass = (g_audioFFT.getBand(bassBin) > 25.0);
   if (isBass) {
     fill(color(50,90,100));
-    rect(0, 0, width, height);
+    rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
   }
 }
 
@@ -23,21 +23,20 @@ void propellor(int loopCounter, AudioBuffer buffer) {
 }
 
 void domeEq(int loopCounter, AudioBuffer buffer) {
-  //audioFFT.forward(soundStream.mix);
-  audioFFT.forward(buffer);
+  g_audioFFT.forward(buffer);
   float psd = 0;
   
-  float barWidth = 360.0 / fftBins;
+  float barWidth = 360.0 / FFT_BIN_COUNT;
   float offset = (loopCounter/500.0);
   
-  for (int i=0; i<fftBins; i++) {
-    psd += audioFFT.getBand(i);
+  for (int i=0; i<FFT_BIN_COUNT; i++) {
+    psd += g_audioFFT.getBand(i);
     
     float center = (i+.5)*barWidth;
-    float sHeight = .9 * audioFFT.getBand(i) / 15;
-    float saturation = map(audioFFT.getBand(i),0,20,10,100);
+    float sHeight = .9 * g_audioFFT.getBand(i) / 15;
+    float saturation = map(g_audioFFT.getBand(i),0,20,10,100);
     color sColor = color(((i+.5)*barWidth/3.6+loopCounter/80.0)%100.0, saturation, saturation);
-    drawSlice(center, barWidth, width/2, sHeight, sColor);
+    drawSlice(center, barWidth, DISPLAY_WIDTH/2, sHeight, sColor);
   }
   //println(psd);
 }
@@ -48,7 +47,7 @@ void pinwheel(int loopCounter, int slices, float speed) {
   
   for (int i = 1; i <= slices; i++) {
     color sliceColor = color(((i-1)*(100.0/slices)+(loopCounter/speed)) % 100.0, 100, 100);
-    drawSlice(sliceWidth*(i-.5), sliceWidth, width/2, .9, sliceColor);
+    drawSlice(sliceWidth*(i-.5), sliceWidth, DISPLAY_WIDTH/2, .9, sliceColor);
   }
 }
 
@@ -61,17 +60,17 @@ void drawSlice(float thetaCenter, float sliceWidth, float sliceRadius, float sli
   float widthAngle = radians(sliceWidth) / 2;
   
   pushMatrix();
-  translate(width/2, height/2);
+  translate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
   rotate(radians(thetaCenter));
   
   beginShape();
-  float x = (1-sliceHeight) * width/2;
+  float x = (1-sliceHeight) * DISPLAY_WIDTH/2;
   float xSinT = sin(widthAngle);
   vertex(x, -x*xSinT);
   vertex(x, x*xSinT);
   
-  vertex(sliceRadius, width/2 * xSinT);
-  vertex(sliceRadius, -1 * width/2 * xSinT);
+  vertex(sliceRadius, DISPLAY_WIDTH/2 * xSinT);
+  vertex(sliceRadius, -1 * DISPLAY_WIDTH/2 * xSinT);
   endShape(CLOSE);
   
   popMatrix();
@@ -82,7 +81,7 @@ void spinImage(int loopCounter, float speed, PImage projectedImage) {
   float theta = radians((float(loopCounter) * speed) % 360);
   tint(color(0,0,100));
   pushMatrix();
-  translate(width/2, height/2);
+  translate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
   rotate(theta);
   image(projectedImage, 0, 0);
   popMatrix();
@@ -92,7 +91,7 @@ void slideImage(int loopCounter, float speed, PImage projectedImage) {
   int imHeight = projectedImage.height;
   tint(color(0,0,100));
   pushMatrix();
-  translate(width/2, height/2);
+  translate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
   image(projectedImage, 0, loopCounter * speed % imHeight);
   image(projectedImage, 0, (loopCounter * speed % imHeight) - imHeight);
   popMatrix();
@@ -107,7 +106,7 @@ void domeBreathe (int loopCounter, float speed) {
   float b = 10 + 90 * (sin(float(loopCounter) * pulseSpeed) + 1);
   fill(h, b, b);
   rectMode(CENTER);
-  rect(width/2, height/2, width, height);
+  rect(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 }
 
 void rowTest(int loopCounter) {
@@ -115,8 +114,8 @@ void rowTest(int loopCounter) {
   float speed = 5;
   int rowLaps = 3;
   float countsOnRow = rowLaps * 360 / speed;
-  float row = (loopCounter / countsOnRow) % domeRows;
-  testSingleRow(loopCounter, width/2 * rowScales[int(row)], speed);
+  float row = (loopCounter / countsOnRow) % DOME_ROW_COUNT;
+  testSingleRow(loopCounter, DISPLAY_WIDTH/2 * ROW_SCALE_ARRAY[int(row)], speed);
 }
 
 void testSingleRow(int loopCounter, float rowRadius, float speed) {
@@ -124,7 +123,7 @@ void testSingleRow(int loopCounter, float rowRadius, float speed) {
   float angle = (loopCounter * speed) % 360;
   tint(color(60,30,100));
   pushMatrix();
-  translate(width/2, height/2);
+  translate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
   rotate(radians(angle));
   image(ring, rowRadius, 0, 70, 210);
   popMatrix();
@@ -141,14 +140,14 @@ void domeFish(int loopCounter) {
   //no EQ reactions
   background(55, 100, 70);
   float angle = radians(float(loopCounter % 36000));
-  float xc = width/2 * sin(.8*angle);
-  float yc = width/6 * cos(1*angle);
+  float xc = DISPLAY_WIDTH/2 * sin(.8*angle);
+  float yc = DISPLAY_WIDTH/6 * cos(1*angle);
   
   tint(12, 100, 100);
   pushMatrix();
-  translate(width/2, height/2);
+  translate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
   rotate(angle * .01);
-  image(ring, xc, yc, width * .35, width * .35);
+  image(ring, xc, yc, DISPLAY_WIDTH * .35, DISPLAY_WIDTH * .35);
   popMatrix();
   
 }

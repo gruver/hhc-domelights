@@ -1,16 +1,16 @@
 float[] analyzeSound (AudioBuffer audio) {
-  float[] fftAmplitude = new float[fftBins];
+  float[] fftAmplitude = new float[FFT_BIN_COUNT];
   
-  audioFFT.forward(audio);
+  g_audioFFT.forward(audio);
   
-  for (int i=0; i<fftBins; i++) {
-    float amp = audioFFT.getBand(i);
+  for (int i=0; i<FFT_BIN_COUNT; i++) {
+    float amp = g_audioFFT.getBand(i);
     fftAmplitude[i] = amp;
     psd += amp*amp;
     
-    if (i < fftBins / 3) {
+    if (i < FFT_BIN_COUNT / 3) {
       psd13 += amp*amp;
-    } else if (i < fftBins * 2 / 3) {
+    } else if (i < (FFT_BIN_COUNT * (2 / 3))) {
       psd23 += amp*amp;
     } else {
       psd33 += amp*amp;
@@ -30,7 +30,7 @@ float[] analyzeSound (AudioBuffer audio) {
       //bass hit - latch, increment, etc
       println("-----BASS EVENT-----");
       fill(50,100,100);
-      ellipse(width/2, height/2,200,200);
+      ellipse(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2,200,200);
       if (toggle) {
         //A
         toggle = !toggle;

@@ -5,3 +5,8 @@ enum DisplayMode {
   BASS_RINGS,
   DOME_BREATHE 
 };
+
+enum AudioSource { 
+  LINE_IN, 
+  FILE 
+};
