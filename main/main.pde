@@ -6,6 +6,7 @@
 import ddf.minim.analysis.*;
 import ddf.minim.*;
 import java.util.Map;
+import java.util.*;
 
 /////////////////////////////////////////////////////
 // Constants
@@ -25,6 +26,9 @@ float ROW_SCALE_4 = .75;
 float ROW_SCALE_5 = .95;
 float[] ROW_SCALE_ARRAY = {ROW_SCALE_1, ROW_SCALE_2, ROW_SCALE_3, ROW_SCALE_4, ROW_SCALE_5};
 
+float SLEEP_CYCLE_MODULO = (0.1 * 60 * 30); // minutes * 60 seconds * roughly 30 cycles per second
+List SLEEP_STAGES_LIST = Arrays.asList(1,6,8,9,11,13);
+
 /////////////////////////////////////////////////////
 // Global Variables
 
@@ -42,9 +46,9 @@ AudioBuffer m_fftSource;
 /////////////////////////////////////////////////////
 // State Variables
 
-int lightPattern = 0; //which pattern to use
-int loopCounter = 0;
-float loopAngle = 0;
+int m_lightPattern = 0; //which pattern to use
+int m_loopCounter = 0;
+boolean m_sleeping = false;
 
 int soundReference = 0;
 String[] songList = new String[0];
@@ -67,7 +71,7 @@ PImage ring;
 float[] ringScales = new float[15];
 
 void setup() {
-  size(DISPLAY_WIDTH, (DISPLAY_HEIGHT+100), P2D); //<>//
+  size(DISPLAY_WIDTH, (DISPLAY_HEIGHT+100), P2D);
   frameRate(20);
   colorMode(HSB,100);
   
@@ -105,9 +109,8 @@ void setup() {
 }
 
 void draw() {
-  background(0); //reset to black
-  loopCounter++;
-    
+  background(0); //reset to black  
+  
   switch(soundReference) {
     case 0 :
       m_fftSource = m_soundStream.mix;
@@ -118,54 +121,66 @@ void draw() {
     default :
       m_fftSource = m_soundStream.mix;
       break;
-  }  
+  } 
   
   pushMatrix();
   
-  switch(lightPattern) {
+  m_loopCounter += 1;
+  if (m_sleeping && m_loopCounter % SLEEP_CYCLE_MODULO == 0) {
+    int stage_index = SLEEP_STAGES_LIST.indexOf(m_lightPattern) + 1;
+    if (stage_index >= (SLEEP_STAGES_LIST.size())) {
+      stage_index = 0;
+    }
+    
+    int new_value = ((Integer)SLEEP_STAGES_LIST.get(stage_index)).intValue();
+    println("index: " + stage_index + " new_value: " + new_value);
+    m_lightPattern = new_value;
+  }
+  
+  switch(m_lightPattern) {
     case 0 :
-      domeEq(loopCounter, m_fftSource);
+      domeEq(m_loopCounter, m_fftSource);
       break;
     case 1 :
-      pinwheel(loopCounter, 60, 9);
+      pinwheel(m_loopCounter, 60, 9);
       break;
     case 2 :
-      bassStrobe(loopCounter, m_fftSource, color(80,100,100), color(20,100,100));
+      bassStrobe(m_loopCounter, m_fftSource, color(80,100,100), color(20,100,100));
       break;
     case 3 :
-      bassRings(loopCounter, m_fftSource, color(30,100,100), color(85,100,100));
+      bassRings(m_loopCounter, m_fftSource, color(30,100,100), color(85,100,100));
       break;
     case 4 :
       //WALDO
-      bassRings(loopCounter, m_fftSource, color(0,0,100), color(0,100,100));
+      bassRings(m_loopCounter, m_fftSource, color(0,0,100), color(0,100,100));
       break;
     case 5 :
-      domeBlink(loopCounter, m_fftSource);
+      domeBlink(m_loopCounter, m_fftSource);
       break;
     case 6 :
-      domeFish(loopCounter);
+      domeFish(m_loopCounter);
       break;
     case 7 :
-      slideImage(loopCounter, 4.8, lines);
+      slideImage(m_loopCounter, 4.8, lines);
       break;
     case 8 :
-      spinImage(loopCounter, 1.8, mGradient);
+      spinImage(m_loopCounter, 1.8, mGradient);
       break;
     case 9 :
-      spinImage(loopCounter, 1.8, bluePink);
+      spinImage(m_loopCounter, 1.8, bluePink);
       break;
     case 10 :
-      rowTest(loopCounter);
+      rowTest(m_loopCounter);
       break;
     case 11 :
-      domeBreathe(loopCounter, 2.0);
+      domeBreathe(m_loopCounter, 2.0);
       break;
     case 12 :
-      loudColor(loopCounter, m_fftSource);
+      loudColor(m_loopCounter, m_fftSource);
       break;
     case 13 :
     default :
-      colorTest(loopCounter, .2);
+      colorTest(m_loopCounter, .2);
       break;
     case 14 :
       float[] foo = analyzeSound(m_fftSource);
@@ -184,20 +199,26 @@ void displayContext(int display_width, int display_height) {
   
   int yIndex = display_height-LINE_HEIGHT;
   
-  text(("Display Mode: " + lightPattern + " (a) advance (shift+a) previous"), 10, yIndex);
+  if (m_sleeping){
+    text("Sleeping .... (_) to wake up", 10, yIndex);
+  } else {
+    text(("Display Mode: " + m_lightPattern + " (a) advance (shift+a) previous"), 10, yIndex);
+  }
   yIndex = yIndex-LINE_HEIGHT;
   
-  String sourceInfo = " (s) switch";
-  if (soundReference == 1) {
-    sourceInfo += " (p) ";
-    if (m_soundFile.isPlaying()) {
-      sourceInfo += "pause"; 
-    } else {
-      sourceInfo += "play";
+  if (!m_sleeping) {
+    String sourceInfo = " (s) switch";
+    if (soundReference == 1) {
+      sourceInfo += " (p) ";
+      if (m_soundFile.isPlaying()) {
+        sourceInfo += "pause"; 
+      } else {
+        sourceInfo += "play";
+      }
     }
-  }
-  text(("Audio Source: " + soundReference + sourceInfo), 10, yIndex);
-  yIndex = yIndex-LINE_HEIGHT;
+    text(("Audio Source: " + soundReference + sourceInfo), 10, yIndex);
+    yIndex = yIndex-LINE_HEIGHT;
+  }  
 }
 
 void keyPressed () {
@@ -233,12 +254,24 @@ void keyPressed () {
       directPlaySong(songList[nowPlaying], 2);
       break;
     case 'a' :
-      lightPattern = (lightPattern + 1) % 15;
-      println("PATTERN:", lightPattern);
+      if (!m_sleeping) {
+        m_lightPattern = (m_lightPattern + 1) % 15;
+        println("PATTERN:", m_lightPattern);
+      }
       break;
     case 'A' :
-      lightPattern = (lightPattern + 14) % 15;
-      println("PATTERN:", lightPattern);
+      if (!m_sleeping) {
+        m_lightPattern = (m_lightPattern + 14) % 15;
+        println("PATTERN:", m_lightPattern);
+      }
+      break;
+    case '_' :
+      if (m_sleeping) {
+        m_sleeping = false;
+      } else {
+        m_sleeping = true;
+        m_lightPattern = ((Integer)SLEEP_STAGES_LIST.get(0)).intValue();
+      }
       break;
   }
   
