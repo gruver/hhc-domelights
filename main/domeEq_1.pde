@@ -24,10 +24,9 @@ void propellor(int loopCounter, AudioBuffer buffer) {
 
 void domeEq(int loopCounter, AudioBuffer buffer) {
   g_audioFFT.forward(buffer);
-  float psd = 0;
   
+  float psd = 0;
   float barWidth = 360.0 / FFT_BIN_COUNT;
-  float offset = (loopCounter/500.0);
   
   for (int i=0; i<FFT_BIN_COUNT; i++) {
     psd += g_audioFFT.getBand(i);
