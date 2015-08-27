@@ -10,7 +10,7 @@ float[] analyzeSound (AudioBuffer audio) {
     
     if (i < FFT_BIN_COUNT / 3) {
       psd13 += amp*amp;
-    } else if (i < (FFT_BIN_COUNT * (2 / 3))) {
+    } else if (i < (FFT_BIN_COUNT * 2 / 3)) {
       psd23 += amp*amp;
     } else {
       psd33 += amp*amp;
@@ -29,8 +29,8 @@ float[] analyzeSound (AudioBuffer audio) {
     if (!latch) {
       //bass hit - latch, increment, etc
       println("-----BASS EVENT-----");
-      fill(50,100,100);
-      ellipse(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2,200,200);
+      
+      
       if (toggle) {
         //A
         toggle = !toggle;

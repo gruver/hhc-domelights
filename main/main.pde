@@ -46,6 +46,7 @@ AudioBuffer m_fftSource;
 /////////////////////////////////////////////////////
 // State Variables
 
+String m_patternName = "null";
 int m_lightPattern = 0; //which pattern to use
 int m_loopCounter = 0;
 boolean m_sleeping = false;
@@ -104,7 +105,7 @@ void setup() {
   opc.ledRing(64, 20, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_4, 0);
   opc.ledRing(128, 15, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_3, 0);
   opc.ledRing(192, 10, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_2, 0);
-  opc.ledRing(256, 5, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_1, 0);
+  opc.ledRing(202, 5, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, (DISPLAY_WIDTH/2)*ROW_SCALE_1, 0); //Also on connector 4
   
   mainFont = createFont("Helvetica",16,true);   
 }
@@ -140,51 +141,70 @@ void draw() {
   
   switch(m_lightPattern) {
     case 0 :
+      m_patternName = "Color EQ";
       domeEq(m_loopCounter, m_fftSource);
       break;
     case 1 :
+      m_patternName = "Rainbow Pinwheel";
       pinwheel(m_loopCounter, 60, 9);
       break;
     case 2 :
+      m_patternName = "Bass Strobe";
       bassStrobe(m_loopCounter, m_fftSource, color(80,100,100), color(20,100,100));
       break;
     case 3 :
+      m_patternName = "Bass Rings Mardi Gras";
       bassRings(m_loopCounter, m_fftSource, color(30,100,100), color(85,100,100));
       break;
     case 4 :
       //WALDO
+      m_patternName = "Bass Rings Waldo";
       bassRings(m_loopCounter, m_fftSource, color(0,0,100), color(0,100,100));
       break;
     case 5 :
+      m_patternName = "Dome Blink";
       domeBlink(m_loopCounter, m_fftSource);
       break;
     case 6 :
+      m_patternName = "Yellow Fish";
       domeFish(m_loopCounter);
       break;
     case 7 :
+      m_patternName = "Orange/Blue Stripes";
       slideImage(m_loopCounter, 4.8, lines);
       break;
     case 8 :
+      m_patternName = "Mardi Gras Gradient";
       spinImage(m_loopCounter, 1.8, mGradient);
       break;
     case 9 :
+      m_patternName = "Pink Blue GRadient";
       spinImage(m_loopCounter, 1.8, bluePink);
       break;
     case 10 :
+      m_patternName = "Row Test";
       rowTest(m_loopCounter);
       break;
     case 11 :
+      m_patternName = "Dome Breathes";
       domeBreathe(m_loopCounter, 2.0);
       break;
     case 12 :
+      m_patternName = "Loud Color ?";
       loudColor(m_loopCounter, m_fftSource);
       break;
     case 13 :
     default :
+      m_patternName = "Color Test (Default)";
       colorTest(m_loopCounter, .2);
       break;
     case 14 :
-      float[] foo = analyzeSound(m_fftSource);
+      m_patternName = "Strobe EQ";
+      strobePixels(m_loopCounter, m_fftSource);
+      break;
+    case 15 :
+      m_patternName = "Bass Glow";
+      simpleBass(m_loopCounter, m_fftSource);
       break;
   }
   
@@ -199,6 +219,10 @@ void displayContext(int display_width, int display_height) {
   textFont(mainFont);
   
   int yIndex = display_height-LINE_HEIGHT;
+  
+  text(("Program: " + m_patternName), 10, yIndex);
+  yIndex = yIndex-LINE_HEIGHT;
+  
   
   if (m_sleeping){
     text("Sleeping .... (_) to wake up", 10, yIndex);
@@ -256,13 +280,13 @@ void keyPressed () {
       break;
     case 'a' :
       if (!m_sleeping) {
-        m_lightPattern = (m_lightPattern + 1) % 15;
+        m_lightPattern = (m_lightPattern + 1) % 17;
         println("PATTERN:", m_lightPattern);
       }
       break;
     case 'A' :
       if (!m_sleeping) {
-        m_lightPattern = (m_lightPattern + 14) % 15;
+        m_lightPattern = (m_lightPattern + 16) % 17;
         println("PATTERN:", m_lightPattern);
       }
       break;

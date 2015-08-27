@@ -1,3 +1,30 @@
+void strobePixels (int loopCounter, AudioBuffer buffer) {
+  float[] levels = analyzeSound(buffer);
+  float threshold = 20;
+  float center;
+  float offset = (float(loopCounter) / 2.3) % 360;
+  float brightness;
+  float sliceWidth = 360.0 / FFT_BIN_COUNT;
+  
+  for (int i = 0; i < levels.length; i++) {
+    center = i * 360.0 / FFT_BIN_COUNT;
+    brightness = max(20, 4 * levels[i]);
+    
+    drawSlice(center, sliceWidth, 300, 1, color(0,0,brightness));
+  }
+}
+  
+void simpleBass (int loopCounter, AudioBuffer buffer) {
+  //fade in fade out on bass
+  float[] levels = analyzeSound(buffer);
+  float trigger = max( levels[4], levels[5] );
+  float filter = .20;
+  volume = filter * volume + (1 - filter) * 1.6 * trigger;
+  
+  fill(color(85,10,max(20, volume)));
+  rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+}
+
 void loudColor  (int loopCounter, AudioBuffer buffer) {
   float[] levels = analyzeSound(buffer);
   float filter = 0.3;
@@ -37,7 +64,6 @@ void domeEq(int loopCounter, AudioBuffer buffer) {
     color sColor = color(((i+.5)*barWidth/3.6+loopCounter/80.0)%100.0, saturation, saturation);
     drawSlice(center, barWidth, DISPLAY_WIDTH/2, sHeight, sColor);
   }
-  //println(psd);
 }
 
 void pinwheel(int loopCounter, int slices, float speed) {
@@ -53,6 +79,8 @@ void pinwheel(int loopCounter, int slices, float speed) {
 
 void drawSlice(float thetaCenter, float sliceWidth, float sliceRadius, float sliceHeight, color sliceColor) {
   //height is 0 to 1
+  //thetaCenter is degrees, sliceWidth is degrees
+  
   sliceHeight = min(sliceHeight, 1.0);
   noStroke();
   fill(sliceColor);
