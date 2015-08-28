@@ -28,7 +28,7 @@ float[] analyzeSound (AudioBuffer audio) {
   if (psd13 > bassLimit) {
     if (!latch) {
       //bass hit - latch, increment, etc
-      println("-----BASS EVENT-----");
+      //println("-----BASS EVENT-----");
       
       
       if (toggle) {

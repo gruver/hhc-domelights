@@ -1,3 +1,49 @@
+void waterfall (int loopCounter, AudioBuffer m_fftSource, color color1, color color2) {
+  float[] levels = analyzeSound(m_fftSource);
+  
+  
+  background(hue(color1), .6 * saturation(color1), 30);
+  imageMode(CENTER);
+  
+  
+  float bassThreshold = 50;
+  //float bassValue = max(levels[1], levels[5]);
+  float bassValue = psd13;
+  
+  if (bassValue > bassThreshold) { //boom
+    if (!latch) { //add a new ring, latch
+      float[] temp = new float[ringScales.length];
+      arrayCopy(ringScales, temp);
+      
+      for (int i = 1; i < ringScales.length; i++) {
+        ringScales[i] = temp[i-1];
+      }
+      ringScales[0] = .05;
+      latch = true;
+      toggle = !toggle;
+    }
+  }
+  else { //no bass, reset
+    latch = false;
+  }
+  
+  for (int i = ringScales.length-1; i >= 0 ; i--) {
+    if (ringScales[i] < 3.0) {
+      if (toggle == ((i%2) == 0)) {
+        tint(color1);
+      }
+      else {
+        tint(color2);
+      }
+      image(ring, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, ringScales[i] * DISPLAY_WIDTH, ringScales[i] * DISPLAY_HEIGHT);
+      ringScales[i] *= 1.35;
+    }
+    else {
+      ringScales[i] = 0;
+    }
+  }
+}
+
 void strobePixels (int loopCounter, AudioBuffer buffer) {
   float[] levels = analyzeSound(buffer);
   float threshold = 20;
@@ -35,14 +81,15 @@ void loudColor  (int loopCounter, AudioBuffer buffer) {
   background(h, psd13/2, psd13/2.4);
 }
 
-void domeBlink (int loopCounter, AudioBuffer buffer) {
-  background(color(50,80,30));
-  int bassBin = 0;
-  boolean isBass = (g_audioFFT.getBand(bassBin) > 25.0);
-  if (isBass) {
-    fill(color(50,90,100));
-    rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-  }
+void brightByLevel (int loopCounter, AudioBuffer buffer) {
+  float lightColor = (float(loopCounter) / 11.0) % 100;
+  float filter = .23;
+  background(color(lightColor,80,30));
+  float[] levels = analyzeSound(buffer);
+  println("PSD: ",psd);
+  volume = filter*volume + (1-filter)*(psd / 1.8);
+  fill(color(lightColor, volume, volume));
+  rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 }
 
 void propellor(int loopCounter, AudioBuffer buffer) {
@@ -62,7 +109,8 @@ void domeEq(int loopCounter, AudioBuffer buffer) {
     float sHeight = .9 * g_audioFFT.getBand(i) / 15;
     float saturation = map(g_audioFFT.getBand(i),0,20,10,100);
     color sColor = color(((i+.5)*barWidth/3.6+loopCounter/80.0)%100.0, saturation, saturation);
-    drawSlice(center, barWidth, DISPLAY_WIDTH/2, sHeight, sColor);
+    //drawSlice(center, barWidth, DISPLAY_WIDTH/2, sHeight, sColor);
+    drawSlice(center, barWidth, DISPLAY_WIDTH/2, 1, sColor);
   }
 }
 

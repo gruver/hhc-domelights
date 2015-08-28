@@ -26,8 +26,12 @@ float ROW_SCALE_4 = .75;
 float ROW_SCALE_5 = .95;
 float[] ROW_SCALE_ARRAY = {ROW_SCALE_1, ROW_SCALE_2, ROW_SCALE_3, ROW_SCALE_4, ROW_SCALE_5};
 
+int NUM_PATTERNS = 20;
+
 float SLEEP_CYCLE_MODULO = (0.1 * 60 * 30); // minutes * 60 seconds * roughly 30 cycles per second
-List SLEEP_STAGES_LIST = Arrays.asList(1,6,8,9,11,13);
+List SLEEP_STAGES_LIST = Arrays.asList(1,6,8,9,11,13,16);
+List MUSIC_STAGES_LIST = Arrays.asList(0,2,4,5,14,15);
+List TUESDAY_STAGES_LIST = Arrays.asList(3,5, 8);
 
 /////////////////////////////////////////////////////
 // Global Variables
@@ -70,6 +74,7 @@ PImage mGradient;
 PImage bluePink;
 PImage lines;
 PImage ring;
+PImage bwStripes;
 float[] ringScales = new float[15];
 
 void setup() {
@@ -93,6 +98,7 @@ void setup() {
   mGradient = loadImage("../common/mardiGradient.png");
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
+  bwStripes = loadImage("../common/black_white_stripes.png");
   ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
   for (int i = 0; i < ringScales.length; i++) {
@@ -162,8 +168,8 @@ void draw() {
       bassRings(m_loopCounter, m_fftSource, color(0,0,100), color(0,100,100));
       break;
     case 5 :
-      m_patternName = "Dome Blink";
-      domeBlink(m_loopCounter, m_fftSource);
+      m_patternName = "Vocal Glow";
+      brightByLevel(m_loopCounter, m_fftSource);
       break;
     case 6 :
       m_patternName = "Yellow Fish";
@@ -205,6 +211,22 @@ void draw() {
     case 15 :
       m_patternName = "Bass Glow";
       simpleBass(m_loopCounter, m_fftSource);
+      break;
+    case 16 :
+      m_patternName = "Twinkle Lights";
+      spinImage(m_loopCounter, 1.7, bwStripes);
+      break;
+    case 17 :
+      m_patternName = "Bass Rings White";
+      bassRings(m_loopCounter, m_fftSource, color(0,0,100), color(17,10,10));
+      break;
+    case 18 :
+      m_patternName = "Bass Rings Blue Pink";
+      bassRings(m_loopCounter, m_fftSource, color(50,100,100), color(88,1000,100));
+      break;
+    case 19 :
+      m_patternName = "Waterfall";
+      waterfall(m_loopCounter, m_fftSource, color(75,100,100), color(20,1000,100));
       break;
   }
   
@@ -280,13 +302,13 @@ void keyPressed () {
       break;
     case 'a' :
       if (!m_sleeping) {
-        m_lightPattern = (m_lightPattern + 1) % 17;
+        m_lightPattern = (m_lightPattern + 1) % NUM_PATTERNS;
         println("PATTERN:", m_lightPattern);
       }
       break;
     case 'A' :
       if (!m_sleeping) {
-        m_lightPattern = (m_lightPattern + 16) % 17;
+        m_lightPattern = (m_lightPattern + NUM_PATTERNS - 1) % NUM_PATTERNS;
         println("PATTERN:", m_lightPattern);
       }
       break;
