@@ -30,7 +30,7 @@ float[] analyzeSound (AudioBuffer audio) {
     if (!latch) { //first bass note in a series
       //bass hit - latch, increment, etc
       bassHit = true;
-      print(psd23, " - ");
+      //print(psd23, " - ");
       
       if (toggle) {
         //A
