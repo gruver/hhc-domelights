@@ -76,6 +76,7 @@ PImage bluePink;
 PImage lines;
 PImage ring;
 PImage bwStripes;
+PImage bwCrystal;
 PImage rainbow;
 float[] ringScales = new float[15];
 
@@ -101,6 +102,7 @@ void setup() {
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
   bwStripes = loadImage("../common/black_white_stripes.png");
+  bwCrystal = loadImage("../common/black_white_crystals.png");
   rainbow = loadImage("../common/hueGradient.png");
   ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
@@ -217,7 +219,7 @@ void draw() {
       break;
     case 16 :
       m_patternName = "Twinkle Lights";
-      spinImage(m_loopCounter, 1.7, bwStripes);
+      spinImage(m_loopCounter, 1.7, bwCrystal);
       break;
     case 17 :
       m_patternName = "Bass Rings White";
