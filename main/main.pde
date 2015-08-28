@@ -102,7 +102,7 @@ void setup() {
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
   bwStripes = loadImage("../common/black_white_stripes.png");
-  bwCrystal = loadImage("../common/black_white_crystals.png");
+  bwCrystal = loadImage("../common/black_white_crystals.jpg");
   rainbow = loadImage("../common/hueGradient.png");
   ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
