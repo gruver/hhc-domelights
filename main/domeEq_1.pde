@@ -6,9 +6,9 @@ void waterfall (int loopCounter, AudioBuffer m_fftSource, color color1, color co
   imageMode(CENTER);
   
   
-  float bassThreshold = 50;
+  float bassThreshold = 35;
   //float bassValue = max(levels[1], levels[5]);
-  float bassValue = psd13;
+  float bassValue = levels[7];
   
   if (bassValue > bassThreshold) { //boom
     if (!latch) { //add a new ring, latch
@@ -68,7 +68,7 @@ void simpleBass (int loopCounter, AudioBuffer buffer) {
   volume = filter * volume + (1 - filter) * 1.6 * trigger;
   
   fill(color(85,10,max(20, volume)));
-  rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  rect(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 }
 
 void loudColor  (int loopCounter, AudioBuffer buffer) {

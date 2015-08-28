@@ -26,7 +26,7 @@ float ROW_SCALE_4 = .75;
 float ROW_SCALE_5 = .95;
 float[] ROW_SCALE_ARRAY = {ROW_SCALE_1, ROW_SCALE_2, ROW_SCALE_3, ROW_SCALE_4, ROW_SCALE_5};
 
-int NUM_PATTERNS = 20;
+int NUM_PATTERNS = 21;
 
 float SLEEP_CYCLE_MODULO = (0.1 * 60 * 30); // minutes * 60 seconds * roughly 30 cycles per second
 List SLEEP_STAGES_LIST = Arrays.asList(1,6,8,9,11,13,16);
@@ -69,12 +69,14 @@ float volume = 0;
 
 boolean toggle = false;
 boolean latch = false;
+boolean bassHit = false;
 
 PImage mGradient;
 PImage bluePink;
 PImage lines;
 PImage ring;
 PImage bwStripes;
+PImage rainbow;
 float[] ringScales = new float[15];
 
 void setup() {
@@ -99,6 +101,7 @@ void setup() {
   bluePink = loadImage("../common/pbGradient.png");
   lines = loadImage("../common/brightStripes.png");
   bwStripes = loadImage("../common/black_white_stripes.png");
+  rainbow = loadImage("../common/hueGradient.png");
   ring = loadImage("../common/blurCircle.png");
   ring.mask(ring);
   for (int i = 0; i < ringScales.length; i++) {
@@ -227,6 +230,10 @@ void draw() {
     case 19 :
       m_patternName = "Waterfall";
       waterfall(m_loopCounter, m_fftSource, color(75,100,100), color(20,1000,100));
+      break;
+    case 20 :
+      m_patternName = "Bass Spin";
+      bassRotateImage(m_loopCounter, m_fftSource, rainbow);
       break;
   }
   

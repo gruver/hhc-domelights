@@ -23,13 +23,14 @@ float[] analyzeSound (AudioBuffer audio) {
   psd33 = sqrt(psd33);
  // println("PSD: ", psd, "13: ", psd13, ", 23: ", psd23, ", 33: ", psd33);
   
-  float bassLimit = 60;
+  float bassLimit = 46;
   
-  if (psd13 > bassLimit) {
-    if (!latch) {
+  if (psd23 > bassLimit) {
+    bassHit = false;
+    if (!latch) { //first bass note in a series
       //bass hit - latch, increment, etc
-      //println("-----BASS EVENT-----");
-      
+      bassHit = true;
+      print(psd23, " - ");
       
       if (toggle) {
         //A
