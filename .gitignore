@@ -1,2 +1,12 @@
 .DS_STORE
 sketch.properties
+.bundle
+*.sw?
+
+# Ignore the default SQLite database.
+*.sqlite3
+
+# Ignore all logfiles and tempfiles.
+*.log
+web/tmp
+web/log
